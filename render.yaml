@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ai-chatbot
+    env: docker
+    dockerfilePath: ./unified/Dockerfile
+    region: oregon
+    plan: free
+    envVars:
+      - key: GROQ_API_KEYS
+        sync: false
+      - key: HF_TOKEN
+        sync: false
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+    healthCheckPath: /health
