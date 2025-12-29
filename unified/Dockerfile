@@ -2,19 +2,17 @@ FROM python:3.11-slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    nodejs \
-    npm \
-    git \
-    supervisor \
     curl \
+    supervisor \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Setup MCP Server
-RUN git clone https://github.com/modelcontextprotocol/servers.git /app/mcp-servers
-WORKDIR /app/mcp-servers/src/everything
-RUN npm install
+# Setup Simple MCP Server
+COPY mcp-server/simple_mcp_server.py ./mcp-server/
+COPY mcp-server/requirements.txt ./mcp-server/
+WORKDIR /app/mcp-server
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Setup Backend
 WORKDIR /app
