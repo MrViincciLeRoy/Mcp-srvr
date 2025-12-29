@@ -17,16 +17,16 @@ WORKDIR /app/mcp-servers/src/everything
 RUN npm install
 
 # Setup Backend
+WORKDIR /app
+COPY backend/ ./backend/
 WORKDIR /app/backend
-COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY backend/ .
 
 # Setup Chat App
+WORKDIR /app
+COPY chat-app/ ./chat-app/
 WORKDIR /app/chat-app
-COPY chat-app/requirements.txt .
-RUN pip install --no-cache-dir -r chat-app/requirements.txt
-COPY chat-app/ .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy supervisor config
 COPY unified/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
