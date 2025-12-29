@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Chatbot</h1>
+            <div class="controls">
+                <label class="toggle">
+                    <input type="checkbox" id="useMCP">
+                    <span>Use MCP Tools</span>
+                </label>
+                <button onclick="clearChat()" class="btn-clear">Clear Chat</button>
+            </div>
+        </div>
+        
+        <div id="chatContainer" class="chat-container">
+            <div class="welcome-message">
+                <h2>Welcome! 👋</h2>
+                <p>Ask me anything. I'm powered by Groq with HuggingFace fallback.</p>
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <textarea 
+                id="userInput" 
+                placeholder="Type your message here..."
+                rows="3"
+                onkeydown="handleKeyPress(event)"
+            ></textarea>
+            <button onclick="sendMessage()" id="sendBtn" class="btn-send">
+                Send
+            </button>
+        </div>
+        
+        <div class="status-bar">
+            <span id="statusIndicator">●</span>
+            <span id="statusText">Ready</span>
+            <span id="modelInfo"></span>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
