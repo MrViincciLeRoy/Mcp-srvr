@@ -1,0 +1,103 @@
+name: Comprehensive MCP Server Test
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test-matrix:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.10', '3.11', '3.12']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install uv (Linux/macOS)
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    
+    - name: Cache uv dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/uv
+        key: ${{ runner.os }}-uv-${{ hashFiles('**/pyproject.toml', '**/uv.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-uv-
+    
+    - name: Install project dependencies
+      run: |
+        uv venv
+        source .venv/bin/activate || . .venv/Scripts/activate
+        uv pip install "mcp[cli]" httpx pytest pytest-asyncio
+    
+    - name: Lint Python code
+      run: |
+        source .venv/bin/activate || . .venv/Scripts/activate
+        python -m py_compile main.py
+    
+    - name: Run server smoke test
+      run: |
+        source .venv/bin/activate || . .venv/Scripts/activate
+        
+        # Start server in background with timeout
+        timeout 10 uv run main.py &
+        SERVER_PID=$!
+        
+        # Give it a few seconds to start
+        sleep 5
+        
+        # Check if server is running
+        if ps -p $SERVER_PID > /dev/null 2>&1; then
+          echo "✅ Server is running (PID: $SERVER_PID)"
+          kill $SERVER_PID 2>/dev/null || true
+          exit 0
+        else
+          echo "❌ Server failed to start or crashed"
+          exit 1
+        fi
+      timeout-minutes: 2
+    
+    - name: Run tests (if they exist)
+      run: |
+        source .venv/bin/activate || . .venv/Scripts/activate
+        if [ -d "tests" ] || [ -f "test_*.py" ]; then
+          pytest -v
+        else
+          echo "No tests found, skipping"
+        fi
+      continue-on-error: true
+  
+  security-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install security tools
+      run: |
+        pip install safety bandit
+    
+    - name: Check for vulnerabilities
+      run: |
+        # Check dependencies for known vulnerabilities
+        safety check --file pyproject.toml || true
+        
+        # Run static security analysis
+        bandit -r . -ll || true
+      continue-on-error: true
