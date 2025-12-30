@@ -6,7 +6,6 @@ from mcp.server.fastmcp import FastMCP
 from datetime import datetime
 import platform
 import os
-import contextlib
 
 # Create FastMCP server
 mcp = FastMCP("Simple Tools Server")
@@ -79,28 +78,7 @@ def get_server_info() -> str:
     Version: 1.0.0
     """
 
-def main():
-    """Run the MCP server with StreamableHTTP transport"""
-    import uvicorn
-    from starlette.applications import Starlette
-    from starlette.routing import Mount
-    
-    # Create a lifespan context manager for the session manager
-    @contextlib.asynccontextmanager
-    async def lifespan(app):
-        async with mcp.session_manager.run():
-            yield
-    
-    # Create Starlette app with MCP server mounted
-    app = Starlette(
-        routes=[
-            Mount("/", app=mcp.streamable_http_app()),
-        ],
-        lifespan=lifespan,
-    )
-    
-    # Run with uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=3000, log_level="info")
-
 if __name__ == "__main__":
-    main()
+    # Run with streamable-http transport for supervised daemon execution
+    # This is the correct transport for the official MCP SDK
+    mcp.run(transport="streamable-http")
