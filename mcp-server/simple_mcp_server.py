@@ -80,8 +80,9 @@ def get_server_info() -> str:
 
 def main():
     """Run the MCP server"""
-    # Run with HTTP transport for Docker
-    mcp.run(transport="stdio")
+    # Run with SSE transport for Docker/HTTP
+    import uvicorn
+    uvicorn.run(mcp.get_asgi_app(), host="0.0.0.0", port=3000, log_level="info")
 
 if __name__ == "__main__":
     main()
